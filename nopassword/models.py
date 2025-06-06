@@ -8,13 +8,23 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
+# ✅ Named function instead of lambda (Django can serialize this)
+def default_expiry():
+    return timezone.now() + timezone.timedelta(minutes=5)
+
 class LoginCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='login_codes',
-                             editable=False, verbose_name=_('user'), on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='login_codes',
+        editable=False,
+        verbose_name=_('user'),
+        on_delete=models.CASCADE
+    )
     timestamp = models.DateTimeField(editable=False)
     next = models.TextField(editable=False, blank=True)
-    expires_at = models.DateTimeField(default=lambda:timezone.now() + timezone.timedelta(minutes=5), null=True, editable=False)
+    
+    expires_at = models.DateTimeField(default=default_expiry, null=True, editable=False)
 
     def __str__(self):
         return "%s - %s" % (self.user, self.timestamp)
@@ -33,17 +43,14 @@ class LoginCode(models.Model):
 
     def save(self, *args, **kwargs):
         self.timestamp = timezone.now()
-
         if not self.next:
             self.next = '/'
-
         super(LoginCode, self).save(*args, **kwargs)
 
     @classmethod
     def create_code_for_user(cls, user, next=None):
         if not user.is_active:
             return None
-
         login_code = LoginCode(user=user)
         if next is not None:
             login_code.next = next
