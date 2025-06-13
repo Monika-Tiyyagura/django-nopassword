@@ -10,7 +10,10 @@ from django.utils.translation import gettext_lazy as _
 
 # ✅ Named function instead of lambda (Django can serialize this)
 def default_expiry():
-    return timezone.now() + timezone.timedelta(minutes=5)
+    dt = timezone.now() + timezone.timedelta(minutes=5)
+    if timezone.is_naive(dt):
+        dt = timezone.make_aware(dt, timezone.get_current_timezone())
+    return dt
 
 class LoginCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
