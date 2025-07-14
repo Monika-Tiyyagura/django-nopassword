@@ -32,7 +32,7 @@ except ImportError:
 setup(
     name="django-nopassword",
     version=version,
-    url='http://github.com/relekang/django-nopassword',
+    path='http://github.com/relekang/django-nopassword',
     author='Rolf Erik Lekang',
     author_email='me@rolflekang.com',
     description='Authentication backend for django that uses a one time code instead of passwords',
