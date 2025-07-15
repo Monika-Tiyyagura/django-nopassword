@@ -1,4 +1,5 @@
 from django.db import migrations
+from django.db import models
 import uuid
 
 def populate_uuids(apps, schema_editor):
@@ -32,6 +33,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='logincode',
             name='id',
-            field=migrations.fields.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, serialize=False),
+            field=models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, serialize=False),
         ),
     ]
