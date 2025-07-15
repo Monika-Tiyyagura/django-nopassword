@@ -7,7 +7,9 @@ def populate_uuids(apps, schema_editor):
     db_alias = schema_editor.connection.alias
 
     for obj in Logincode.objects.using(db_alias).all():
-        Logincode.objects.using(db_alias).filter(pk=obj.pk).update(uuid=uuid.uuid4())
+       # Use integer ID directly to avoid pk confusion
+        int_id = obj.__dict__["id"]
+        Logincode.objects.using(db_alias).filter(id=int_id).update(uuid=uuid.uuid4())
 
 class Migration(migrations.Migration):
 
