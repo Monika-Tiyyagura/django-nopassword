@@ -1,5 +1,5 @@
+# 0004_logincode_add_uuid_field.py
 from django.db import migrations, models
-import uuid
 
 class Migration(migrations.Migration):
 
@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='logincode',
             name='uuid',
-            field=models.UUIDField(default=uuid.uuid4, editable=False, null=True),
+            field=models.UUIDField(default=None, null=True),
         ),
     ]

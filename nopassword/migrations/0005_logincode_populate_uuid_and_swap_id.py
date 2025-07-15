@@ -1,15 +1,19 @@
-from django.db import migrations
-from django.db import models
+# 0005_logincode_populate_uuid_and_swap_id.py
+from django.db import migrations, models
 import uuid
 
 def populate_uuids(apps, schema_editor):
-    Logincode = apps.get_model('nopassword', 'logincode')
-    db_alias = schema_editor.connection.alias
+    cursor = schema_editor.connection.cursor()
+    cursor.execute('SELECT id FROM nopassword_logincode')
+    rows = cursor.fetchall()
 
-    for obj in Logincode.objects.using(db_alias).all():
-       # Use integer ID directly to avoid pk confusion
-        int_id = obj.__dict__["id"]
-        Logincode.objects.using(db_alias).filter(id=int_id).update(uuid=uuid.uuid4())
+    for row in rows:
+        int_id = row[0]
+        new_uuid = str(uuid.uuid4())
+        cursor.execute(
+            'UPDATE nopassword_logincode SET uuid = %s WHERE id = %s',
+            [new_uuid, int_id]
+        )
 
 class Migration(migrations.Migration):
 
@@ -19,7 +23,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(populate_uuids, reverse_code=migrations.RunPython.noop),
-
+        
         # Step 2: Remove the old PK
         migrations.RemoveField(
             model_name='logincode',
