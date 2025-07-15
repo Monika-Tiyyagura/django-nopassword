@@ -1,11 +1,12 @@
-from django.db import migrations, models
+from django.db import migrations
 import uuid
 
 def populate_uuids(apps, schema_editor):
     Logincode = apps.get_model('nopassword', 'logincode')
-    for obj in Logincode.objects.all():
-        obj.uuid = uuid.uuid4()
-        obj.save(update_fields=['uuid'])
+    db_alias = schema_editor.connection.alias
+
+    for obj in Logincode.objects.using(db_alias).all():
+        Logincode.objects.using(db_alias).filter(pk=obj.pk).update(uuid=uuid.uuid4())
 
 class Migration(migrations.Migration):
 
@@ -21,18 +22,16 @@ class Migration(migrations.Migration):
             model_name='logincode',
             name='id',
         ),
-
         # Step 3: Rename `uuid` to `id`
         migrations.RenameField(
             model_name='logincode',
             old_name='uuid',
             new_name='id',
         ),
-
         # Step 4: Make `id` the new PK
         migrations.AlterField(
             model_name='logincode',
             name='id',
-            field=models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, serialize=False),
+            field=migrations.fields.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, serialize=False),
         ),
     ]
