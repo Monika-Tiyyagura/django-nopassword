@@ -16,7 +16,7 @@ def populate_uuids(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('nopassword', '0005_logincode_add_uuid_field'),
+        ('nopassword', '0004_logincode_add_uuid_field'),
     ]
 
     operations = [

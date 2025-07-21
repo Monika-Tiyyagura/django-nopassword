@@ -5,7 +5,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('nopassword', '0004_enable_pgcrypto'),
+        ('nopassword', '0003_alter_logincode_expires_at'),
     ]
 
     operations = [
