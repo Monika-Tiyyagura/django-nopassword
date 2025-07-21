@@ -1,11 +1,11 @@
-#0004_logincode_add_uuid_field.py
+#0005_logincode_add_uuid_field.py
 
 from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('nopassword', '0003_alter_logincode_expires_at'),
+        ('nopassword', '0004_enable_pgcrypto'),
     ]
 
     operations = [
