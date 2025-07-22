@@ -22,6 +22,7 @@ class Migration(migrations.Migration):
                 ('timestamp', models.DateTimeField(editable=False)),
                 ('next', models.TextField(blank=True, editable=False)),
                 ('user', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='login_codes', to=settings.AUTH_USER_MODEL, verbose_name='user')),
+                ('code', models.CharField(default=django.utils.timezone.now, editable=False, max_length=64)),
             ],
         ),
     ]
