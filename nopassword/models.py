@@ -29,11 +29,14 @@ class LoginCode(models.Model):
     
     expires_at = models.DateTimeField(default=default_expiry, null=True, editable=False)
 
+    # Added a new field here to store the generated code
+    code = models.CharField(max_length=128, editable=False)
+
     def __str__(self):
         return "%s - %s" % (self.user, self.timestamp)
 
-    @property
-    def code(self):
+    #@property
+    def _generate_code(self):
         hash_algorithm = getattr(settings, 'NOPASSWORD_HASH_ALGORITHM', 'sha256')
         m = getattr(hashlib, hash_algorithm)()
         m.update(getattr(settings, 'SECRET_KEY', None).encode('utf-8'))
@@ -46,8 +49,12 @@ class LoginCode(models.Model):
 
     def save(self, *args, **kwargs):
         self.timestamp = timezone.now()
+        if not self.id:
+            self.id = uuid.uuid4()        
         if not self.next:
             self.next = '/'
+        #Generate and assign code before saving
+        self.code = self._generate_code()
         super(LoginCode, self).save(*args, **kwargs)
 
     @classmethod
