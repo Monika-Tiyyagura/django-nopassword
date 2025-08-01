@@ -94,9 +94,8 @@ class LoginForm(forms.Form):
                 'e.g. `nopassword.backends.EmailBackend`'
             )
 
-
 class LoginCodeForm(forms.Form):
-    user = forms.CharField()
+    #user = forms.CharField()
     code = forms.CharField(
         label=_('Login code'),
         error_messages={
@@ -110,21 +109,26 @@ class LoginCodeForm(forms.Form):
 
     def __init__(self, request=None, *args, **kwargs):
         super(LoginCodeForm, self).__init__(*args, **kwargs)
-
         self.request = request
 
     def clean(self):
-        user_id = self.cleaned_data.get('user', None)
-        if user_id is None:
+        code = self.cleaned_data.get('code')
+        if not code:
             raise forms.ValidationError(
                 self.error_messages['invalid_code'],
                 code='invalid_code',
             )
 
-        user = get_user_model().objects.get(pk=user_id)
-        code = self.cleaned_data['code']
+        try:
+            login_code = models.LoginCode.objects.select_related('user').get(code=code)
+        except models.LoginCode.DoesNotExist:
+            raise forms.ValidationError(
+                self.error_messages['invalid_code'],
+                code='invalid_code',
+            )
+
         user = authenticate(self.request, **{
-            get_user_model().USERNAME_FIELD: user.username,
+            get_user_model().USERNAME_FIELD: login_code.user.username,
             'code': code,
         })
 
@@ -135,7 +139,6 @@ class LoginCodeForm(forms.Form):
             )
 
         self.cleaned_data['user'] = user
-
         return self.cleaned_data
 
     def get_user(self):
