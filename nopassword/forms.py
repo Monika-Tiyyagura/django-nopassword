@@ -22,16 +22,16 @@ class LoginForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(LoginForm, self).__init__(*args, **kwargs)
-
         self.username_field = get_user_model()._meta.get_field(get_user_model().USERNAME_FIELD)
         self.fields['username'] = self.username_field.formfield()
 
     def clean_username(self):
         username = self.cleaned_data['username']
+        User = get_user_model()
 
         try:
-            user = get_user_model()._default_manager.get_by_natural_key(username)
-        except get_user_model().DoesNotExist:
+            user = User._default_manager.get_by_natural_key(username)
+        except User.DoesNotExist:
             raise forms.ValidationError(
                 self.error_messages['invalid_username'],
                 code='invalid_username',
@@ -45,7 +45,6 @@ class LoginForm(forms.Form):
             )
 
         self.cleaned_data['user'] = user
-
         return username
 
     def save(self, request, login_code_url='login_code', domain_override=None, extra_context=None):
@@ -94,6 +93,7 @@ class LoginForm(forms.Form):
                 'e.g. `nopassword.backends.EmailBackend`'
             )
 
+
 class LoginCodeForm(forms.Form):
     #user = forms.CharField()
     code = forms.CharField(
@@ -127,8 +127,12 @@ class LoginCodeForm(forms.Form):
                 code='invalid_code',
             )
 
+        User = get_user_model()
+        username_field = User.USERNAME_FIELD
+        user_identifier = getattr(login_code.user, username_field)
+
         user = authenticate(self.request, **{
-            get_user_model().USERNAME_FIELD: login_code.user.username,
+            username_field: user_identifier,
             'code': code,
         })
 
