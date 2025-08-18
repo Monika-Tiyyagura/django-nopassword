@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import hashlib
 import uuid
+import random
 
 from django.conf import settings
 from django.db import models
@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
-# ✅ Named function instead of lambda (Django can serialize this)
+# Named function instead of lambda (Django can serialize this)
 def default_expiry():
     dt = timezone.now() + timezone.timedelta(minutes=5)
     if timezone.is_naive(dt):
@@ -26,34 +26,23 @@ class LoginCode(models.Model):
     )
     timestamp = models.DateTimeField(editable=False)
     next = models.TextField(editable=False, blank=True)
-    
     expires_at = models.DateTimeField(default=default_expiry, null=True, editable=False)
-
-    # Added a new field here to store the generated code
-    code = models.CharField(max_length=128, editable=False)
+    code = models.CharField(max_length=6, editable=False)  # Changed max_length to 6
 
     def __str__(self):
         return "%s - %s" % (self.user, self.timestamp)
 
-    #@property
     def _generate_code(self):
-        hash_algorithm = getattr(settings, 'NOPASSWORD_HASH_ALGORITHM', 'sha256')
-        m = getattr(hashlib, hash_algorithm)()
-        m.update(getattr(settings, 'SECRET_KEY', None).encode('utf-8'))
-        m.update(str(self.id).encode())
-        if getattr(settings, 'NOPASSWORD_NUMERIC_CODES', False):
-            hashed = str(int(m.hexdigest(), 16))
-        else:
-            hashed = m.hexdigest()
-        return hashed
+        """Generate a 6-digit numeric login code."""
+        return str(random.randint(100000, 999999))
 
     def save(self, *args, **kwargs):
         self.timestamp = timezone.now()
         if not self.id:
-            self.id = uuid.uuid4()        
+            self.id = uuid.uuid4()
         if not self.next:
             self.next = '/'
-        #Generate and assign code before saving
+        # Generate and assign a 6-digit code before saving
         self.code = self._generate_code()
         super(LoginCode, self).save(*args, **kwargs)
 
