@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 
 # Named function instead of lambda (Django can serialize this)
 def default_expiry():
-    dt = timezone.now() + timezone.timedelta(hours=1)
+    dt = timezone.now() + timezone.timedelta(hours=24)
     if timezone.is_naive(dt):
         dt = timezone.make_aware(dt, timezone.get_current_timezone())
     return dt
