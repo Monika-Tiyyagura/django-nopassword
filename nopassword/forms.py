@@ -5,6 +5,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import resolve_url
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 from nopassword import models
 
@@ -126,6 +127,14 @@ class LoginCodeForm(forms.Form):
                 self.error_messages['invalid_code'],
                 code='invalid_code',
             )
+        
+        expiry_limit = login_code.timestamp + timezone.timedelta(hours=24)
+        if timezone.now() > expiry_limit:
+            raise forms.ValidationError(
+                self.error_messages['invalid_code'],
+                code='invalid_code',
+            )
+
 
         User = get_user_model()
         username_field = User.USERNAME_FIELD

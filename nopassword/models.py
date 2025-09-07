@@ -16,6 +16,8 @@ def default_expiry():
     return dt
 
 class LoginCode(models.Model):
+    CODE_LENGTH = 6
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -42,15 +44,28 @@ class LoginCode(models.Model):
             self.id = uuid.uuid4()
         if not self.next:
             self.next = '/'
+        if not self.code:
         # Generate and assign a 6-digit code before saving
-        self.code = self._generate_code()
+            self.code = self._generate_code()
         super(LoginCode, self).save(*args, **kwargs)
 
     @classmethod
     def create_code_for_user(cls, user, next=None):
         if not user.is_active:
             return None
-        login_code = LoginCode(user=user)
+        
+        #clean up old codes
+        cutoff = timezone.now() - timezone.timedelta(hours=720)
+        cls.objects.filter(timestamp__lt=cutoff).delete()
+
+        #generate a unique code
+        while True:
+            code = str(random.randint(10**(cls.CODE_LENGTH-1), 10**cls.CODE_LENGTH - 1))
+            if not cls.objects.filter(code=code).exists(): #this checks if code already exists or not
+                break
+
+        #create new code
+        login_code = LoginCode(user=user, code=code)
         if next is not None:
             login_code.next = next
         login_code.save()
